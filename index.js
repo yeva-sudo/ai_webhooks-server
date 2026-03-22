@@ -12,6 +12,15 @@ app.get('/', (req, res) => {
 // Calendly webhook
 app.post('/calendly', (req, res) => {
   console.log('CALENDLY DATA:', req.body);
+
+  const event = req.body.event || 'unknown';
+
+  if (event === 'invitee.created') {
+    console.log('🔥 New booking received!');
+  } else {
+    console.log('Other event:', event);
+  }
+
   res.sendStatus(200);
 });
 
