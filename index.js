@@ -1,29 +1,27 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
-const axios = require('axios');
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Root route
-app.get('/', (req, res) => res.send('Server is running ✅'));
-
-// Twilio webhook endpoint
-app.post('/twilio', (req, res) => {
-  console.log('Twilio webhook received:', req.body);
-  res.status(200).send('Twilio webhook received');
+app.get('/', (req, res) => {
+  res.send('Server is running ✅');
 });
 
-// Calendly webhook endpoint
+// Calendly webhook
 app.post('/calendly', (req, res) => {
-  console.log('CALENDLY DATA:', JSON.stringify(req.body, null, 2));
-
-  res.status(200).send('Calendly received');
+  console.log('CALENDLY DATA:', req.body);
+  res.sendStatus(200);
 });
-  console.log('Calendly webhook received:', req.body);
-  res.status(200).send('Calendly webhook received');
+
+// Twilio webhook
+app.post('/twilio', (req, res) => {
+  console.log('TWILIO DATA:', req.body);
+  res.sendStatus(200);
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log('Server running on port ' + PORT);
+});
