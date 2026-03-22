@@ -30,24 +30,35 @@ app.post('/calendly', (req, res) => {
 // Twilio webhook
 app.post('/twilio', async (req, res) => {
   console.log('TWILIO DATA:', req.body);
+
   const prompt = `Incoming SMS: ${JSON.stringify(req.body)}`;
 
   try {
     const response = await axios.post(
-  'https://api.bland.ai/v1/calls',  // correct URL
-  {
-    phone_number: '+12066129555',    // target number
-    task: 'Incoming SMS: Hello',     // the task AI should perform
-    model: 'base',
-    language: 'en'
-  },
-  {
-    headers: {
-      'Authorization': `Bearer ${process.env.BLAND_API_KEY}`,
-      'Content-Type': 'application/json'
-    }
+      'https://api.bland.ai/v1/calls',  // Correct endpoint
+      {
+        phone_number: '+1555XXXXXXX',    // Your real number
+        task: prompt,                    // Message AI should perform
+        model: 'base',                   // AI model
+        language: 'en'                   // Language
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.BLAND_API_KEY}`, // Your API key
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    console.log('Bland AI response:', response.data); // Logs response
+  } catch (error) {
+    console.error('Error calling Bland AI:', error.response ? error.response.data : error.message);
   }
-);
+
+  res.sendStatus(200);
+});
+
+
 
 
 
