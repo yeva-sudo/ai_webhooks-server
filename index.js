@@ -34,28 +34,21 @@ app.post('/twilio', async (req, res) => {
 
   try {
     const response = await axios.post(
-      'https://api.bland.ai/v1/calls',   // Step 5a: Correct endpoint
-      {
-        phone_number: '+15551234567',    // Step 5b: Replace with the number Bland should call
-        task: prompt,                    // Step 5c: The message or action AI should perform
-        model: 'base',                   // Step 5d: AI model to use
-        language: 'en'                   // Step 5e: Language
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${process.env.BLAND_API_KEY}`, // Step 5f: Auth
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    console.log('Bland AI response:', response.data); // Step 5g: Logs AI response
-  } catch (error) {
-    console.error('Error calling Bland AI:', error.response ? error.response.data : error.message);
+  'https://api.bland.ai/v1/calls',  // correct URL
+  {
+    phone_number: '+12066129555',    // target number
+    task: 'Incoming SMS: Hello',     // the task AI should perform
+    model: 'base',
+    language: 'en'
+  },
+  {
+    headers: {
+      'Authorization': `Bearer ${process.env.BLAND_API_KEY}`,
+      'Content-Type': 'application/json'
+    }
   }
+);
 
-  res.sendStatus(200); // Step 5h: Always respond to Twilio
-});
 
 
 
