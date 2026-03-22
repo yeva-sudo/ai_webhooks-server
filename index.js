@@ -17,6 +17,10 @@ app.post('/twilio', (req, res) => {
 
 // Calendly webhook endpoint
 app.post('/calendly', (req, res) => {
+  console.log('CALENDLY DATA:', JSON.stringify(req.body, null, 2));
+
+  res.status(200).send('Calendly received');
+});
   console.log('Calendly webhook received:', req.body);
   res.status(200).send('Calendly webhook received');
 });
