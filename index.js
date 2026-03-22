@@ -6,28 +6,19 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root route
 app.get('/', (req, res) => {
   res.send('Glam Salon Server is running ✅');
 });
 
-// ============================================
-// PHASE 1 & 2: SMS + Missed Call → Bland AI
-// ============================================
 app.post('/twilio', async (req, res) => {
   console.log('TWILIO DATA:', req.body);
-
   const customerPhone = req.body.From;
   const message = req.body.Body || 'missed call';
   const callStatus = req.body.CallStatus;
-
-  // Detect if it's a missed call or SMS
   const isMissedCall = callStatus === 'no-answer' || callStatus === 'busy';
-
   const task = isMissedCall
     ? `You are a receptionist for Glam Salon. Call this customer back and say: "Hi! This is Glam Salon calling you back. We noticed you just tried to reach us. How can we help you today?"`
     : `You are a receptionist for Glam Salon. Call this customer and say: "Hi! This is Glam Salon. We received your message: ${message}. How can we help you today?"`;
-
   try {
     const response = await axios.post(
       'https://api.bland.ai/v1/calls',
@@ -48,22 +39,14 @@ app.post('/twilio', async (req, res) => {
     );
     console.log('✅ Bland AI call queued:', response.data);
   } catch (error) {
-    console.error('❌ Bland AI error:', error.response ? error.response.data : error.message);
+    console.error('❌ Error:', error.response ? error.response.data : error.message);
   }
-
   res.sendStatus(200);
 });
 
-// ============================================
-// PHASE 4: Appointment Reminder
-// ============================================
 app.post('/reminder', async (req, res) => {
   const { phone, name, date, time } = req.body;
-
-  const task = `You are a receptionist for Glam Salon. Call this customer and say: 
-  "Hi ${name}! This is a reminder from Glam Salon that you have an appointment on ${date} at ${time}. 
-  Please reply YES to confirm or call us to reschedule. We look forward to seeing you!"`;
-
+  const task = `You are a receptionist for Glam Salon. Say: "Hi ${name}! Reminder from Glam Salon, you have an appointment on ${date} at ${time}. See you soon!"`;
   try {
     const response = await axios.post(
       'https://api.bland.ai/v1/calls',
@@ -82,25 +65,17 @@ app.post('/reminder', async (req, res) => {
         }
       }
     );
-    console.log('✅ Reminder call queued:', response.data);
-    res.json({ success: true, call_id: response.data.call_id });
+    console.log('✅ Reminder queued:', response.data);
+    res.json({ success: true });
   } catch (error) {
-    console.error('❌ Reminder error:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to send reminder' });
+    console.error('❌ Error:', error.message);
+    res.status(500).json({ error: 'Failed' });
   }
 });
 
-// ============================================
-// PHASE 5: Follow-up / Review Call
-// ============================================
 app.post('/followup', async (req, res) => {
   const { phone, name } = req.body;
-
-  const task = `You are a receptionist for Glam Salon. Call this customer and say: 
-  "Hi ${name}! This is Glam Salon. We hope you loved your recent visit! 
-  We would really appreciate if you could leave us a Google review. 
-  It only takes 2 minutes and helps us so much. Thank you and see you soon!"`;
-
+  const task = `You are a receptionist for Glam Salon. Say: "Hi ${name}! This is Glam Salon. We hope you loved your visit! We would love if you could leave us a Google review. Thank you!"`;
   try {
     const response = await axios.post(
       'https://api.bland.ai/v1/calls',
@@ -119,24 +94,17 @@ app.post('/followup', async (req, res) => {
         }
       }
     );
-    console.log('✅ Follow-up call queued:', response.data);
-    res.json({ success: true, call_id: response.data.call_id });
+    console.log('✅ Follow-up queued:', response.data);
+    res.json({ success: true });
   } catch (error) {
-    console.error('❌ Follow-up error:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to send follow-up' });
+    console.error('❌ Error:', error.message);
+    res.status(500).json({ error: 'Failed' });
   }
 });
 
-// ============================================
-// PHASE 6: Lead Response (website form)
-// ============================================
 app.post('/lead', async (req, res) => {
   const { phone, name, service } = req.body;
-
-  const task = `You are a receptionist for Glam Salon. Call this lead and say: 
-  "Hi ${name}! This is Glam Salon calling. We saw you were interested in ${service || 'our services'}. 
-  We'd love to book you in! When would be a good time for your appointment?"`;
-
+  const task = `You are a receptionist for Glam Salon. Say: "Hi ${name}! This is Glam Salon. We saw you were interested in ${service || 'our services'}. We would love to book you in! When works best for you?"`;
   try {
     const response = await axios.post(
       'https://api.bland.ai/v1/calls',
@@ -156,55 +124,15 @@ app.post('/lead', async (req, res) => {
       }
     );
     console.log('✅ Lead call queued:', response.data);
-    res.json({ success: true, call_id: response.data.call_id });
+    res.json({ success: true });
   } catch (error) {
-    console.error('❌ Lead error:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to call lead' });
+    console.error('❌ Error:', error.message);
+    res.status(500).json({ error: 'Failed' });
   }
 });
 
-// ============================================
-// CALENDLY (for when you upgrade)
-// ============================================
 app.post('/calendly', async (req, res) => {
   console.log('CALENDLY DATA:', req.body);
-  const event = req.body.event || 'unknown';
-
-  if (event === 'invitee.created') {
-    const name = req.body.payload?.invitee?.name || 'there';
-    const phone = req.body.payload?.invitee?.text_reminder_number;
-    const time = req.body.payload?.event?.start_time || 'your scheduled time';
-
-    if (phone) {
-      const task = `You are a receptionist for Glam Salon. Call and say: 
-      "Hi ${name}! This is Glam Salon confirming your appointment at ${time}. 
-      We can't wait to see you! If you need to reschedule please call us back."`;
-
-      try {
-        await axios.post(
-          'https://api.bland.ai/v1/calls',
-          {
-            phone_number: phone,
-            task: task,
-            model: 'base',
-            language: 'en',
-            voice: 'maya',
-            max_duration: 2
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${process.env.BLAND_API_KEY}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        console.log('✅ Calendly confirmation call queued');
-      } catch (error) {
-        console.error('❌ Calendly call error:', error.message);
-      }
-    }
-  }
-
   res.sendStatus(200);
 });
 
