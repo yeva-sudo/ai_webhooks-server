@@ -28,11 +28,22 @@ app.post('/calendly', (req, res) => {
 });
 
 // Twilio webhook
-app.post('/twilio', (req, res) => {
+app.post('/twilio', async (req, res) => {
   console.log('TWILIO DATA:', req.body);
+
+  // Step 1: Prepare message for AI
+  const prompt = `New SMS from Twilio: ${JSON.stringify(req.body)}`;
+
+  // Step 2: Send to Bland AI
+  try {
+    const aiResponse = await axios.post('https://api.bland.ai/respond', { prompt });
+    console.log('Bland AI response:', aiResponse.data);
+  } catch (error) {
+    console.error('Error calling Bland AI:', error.message);
+  }
+
   res.sendStatus(200);
 });
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log('Server running on port ' + PORT);
