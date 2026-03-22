@@ -31,7 +31,7 @@ app.post('/twilio', async (req, res) => {
     const response = await axios.post(
       'https://api.bland.ai/v1/calls',
       {
-        phone_number: '+1555XXXXXXX',
+        phone_number: '+12066129555',
         task: prompt,
         model: 'base',
         language: 'en'
