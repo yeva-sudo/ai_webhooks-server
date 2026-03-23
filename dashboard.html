@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>KindRemind Dashboard</title>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    p { color: #666; font-size: 14px; margin-top: 0; }
+    .tabs { display: flex; gap: 8px; margin: 20px 0; }
+    .tab { padding: 6px 16px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 13px; background: #f5f5f5; }
+    .tab.active { background: #e8f0fe; color: #1a73e8; border-color: #1a73e8; }
+    .form { display: none; background: white; border: 1px solid #ddd; border-radius: 12px; padding: 20px; }
+    .form.active { display: block; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    label { font-size: 13px; color: #666; display: block; margin-bottom: 4px; }
+    input { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    button { width: 100%; padding: 10px; margin-top: 8px; background: #e8f0fe; color: #1a73e8; border: 1px solid #1a73e8; border-radius: 8px; font-size: 15px; cursor: pointer; }
+    button:hover { background: #d2e3fc; }
+    .status { font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-top: 8px; display: none; }
+    .success { background: #e6f4ea; color: #137333; display: block; }
+    .error { background: #fce8e6; color: #c5221f; display: block; }
+  </style>
+</head>
+<body>
+  <h1>KindRemind</h1>
+  <p>Send automated calls to your clients</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('reminder')">Reminder</button>
+    <button class="tab" onclick="switchTab('followup')">Follow-up</button>
+    <button class="tab" onclick="switchTab('lead')">New Lead</button>
+  </div>
+
+  <div id="reminder" class="form active">
+    <b style="font-size:14px;">Appointment reminder</b>
+    <div class="grid" style="margin-top:12px;">
+      <div><label>Client name</label><input id="r-name" placeholder="Jane Smith" /></div>
+      <div><label>Phone number</label><input id="r-phone" placeholder="+12065551234" /></div>
+      <div><label>Date</label><input id="r-date" placeholder="March 25" /></div>
+      <div><label>Time</label><input id="r-time" placeholder="2:00 PM" /></div>
+    </div>
+    <button onclick="sendCall('reminder')">Call client with reminder</button>
+    <div id="r-status" class="status"></div>
+  </div>
+
+  <div id="followup" class="form">
+    <b style="font-size:14px;">Follow-up & review request</b>
+    <div class="grid" style="margin-top:12px;">
+      <div><label>Client name</label><input id="f-name" placeholder="Jane Smith" /></div>
+      <div><label>Phone number</label><input id="f-phone" placeholder="+12065551234" /></div>
+    </div>
+    <button onclick="sendCall('followup')">Call client for review</button>
+    <div id="f-status" class="status"></div>
+  </div>
+
+  <div id="lead" class="form">
+    <b style="font-size:14px;">New lead response</b>
+    <div class="grid" style="margin-top:12px;">
+      <div><label>Client name</label><input id="l-name" placeholder="Jane Smith" /></div>
+      <div><label>Phone number</label><input id="l-phone" placeholder="+12065551234" /></div>
+    </div>
+    <label>Service interested in</label>
+    <input id="l-service" placeholder="e.g. facial, massage..." style="margin-bottom:0;" />
+    <button onclick="sendCall('lead')">Call new lead</button>
+    <div id="l-status" class="status"></div>
+  </div>
+
+  <script>
+    const SERVER = 'https://ai-webhooks-server.onrender.com';
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', ['reminder','followup','lead'][i] === tab);
+      });
+      document.querySelectorAll('.form').forEach(f => {
+        f.classList.toggle('active', f.id === tab);
+      });
+    }
+
+    async function sendCall(type) {
+      let body = {}, statusId = '';
+      if (type === 'reminder') {
+        body = { name: document.getElementById('r-name').value, phone: document.getElementById('r-phone').value, date: document.getElementById('r-date').value, time: document.getElementById('r-time').value };
+        statusId = 'r-status';
+      } else if (type === 'followup') {
+        body = { name: document.getElementById('f-name').value, phone: document.getElementById('f-phone').value };
+        statusId = 'f-status';
+      } else if (type === 'lead') {
+        body = { name: document.getElementById('l-name').value, phone: document.getElementById('l-phone').value, service: document.getElementById('l-service').value };
+        statusId = 'l-status';
+      }
+      const statusEl = document.getElementById(statusId);
+      statusEl.className = 'status';
+      statusEl.textContent = 'Sending call...';
+      statusEl.style.display = 'block';
+      try {
+        const res = await fetch(`${SERVER}/${type}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (res.ok) {
+          statusEl.className = 'status success';
+          statusEl.textContent = 'Call successfully queued!';
+        } else {
+          statusEl.className = 'status error';
+          statusEl.textContent = 'Something went wrong. Check Render logs.';
+        }
+      } catch (e) {
+        statusEl.className = 'status error';
+        statusEl.textContent = 'Could not reach server.';
+      }
+    }
+  </script>
+</body>
+</html>
+```
+
+Click **Commit changes** and then open:
+```
+https://ai-webhooks-server.onrender.com/dashboard.html
