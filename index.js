@@ -131,7 +131,7 @@ app.post('/missed-call', async (req, res) => {
       { headers: { 'Authorization': `Bearer ${process.env.BLAND_API_KEY}`, 'Content-Type': 'application/json' } }
     );
     console.log('✅ Missed call callback queued:', response.data);
-    await saveToSheet({ phone: callerPhone, message: 'Missed call - callback triggered' });
+    await saveToSheet({ phone: callerPhone, name: 'Missed Call', message: 'Missed call - callback triggered', service: 'Missed Call Callback' });
   } catch (error) {
     console.error('❌ Error:', error.message);
   }
