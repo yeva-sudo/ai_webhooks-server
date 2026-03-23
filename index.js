@@ -122,7 +122,7 @@ app.post('/missed-call', async (req, res) => {
   console.log('MISSED CALL DATA:', req.body);
   const callerPhone = req.body.From;
 
-  cconst task = `You are an AI booking assistant for KindRemind. When the person answers say: "Hi! This is KindRemind's AI assistant calling you back. I can help you book an appointment right now. What day and time works best for you?" Only discuss appointment booking. Do not offer to transfer or forward to any representative.`;
+  const task = `You are an AI booking assistant for KindRemind. When the person answers say: "Hi! This is KindRemind's AI assistant calling you back. I can help you book an appointment right now. What day and time works best for you?" Only discuss appointment booking. Do not offer to transfer or forward to any representative.`;
   
   try {
     const response = await axios.post(
