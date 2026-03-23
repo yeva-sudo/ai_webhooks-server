@@ -40,6 +40,7 @@ async function saveToSheet(data) {
 app.get('/', (req, res) => {
   res.send('Glam Salon Server is running ✅');
 });
+app.use(express.static(__dirname));
 
 app.post('/twilio', async (req, res) => {
   console.log('TWILIO DATA:', req.body);
