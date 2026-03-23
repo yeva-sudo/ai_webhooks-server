@@ -121,25 +121,23 @@ app.post('/calendly', async (req, res) => {
 app.post('/missed-call', async (req, res) => {
   console.log('MISSED CALL DATA:', req.body);
   const callerPhone = req.body.From;
-  const callStatus = req.body.CallStatus;
 
-  if (callStatus === 'no-answer' || callStatus === 'busy' || callStatus === 'failed') {
-    const task = `You are a receptionist for KindRemind. Call this person back and say: "Hi! This is KindRemind calling you back. We noticed you just tried to reach us and we missed your call. How can we help you today?"`;
-    try {
-      const response = await axios.post(
-        'https://api.bland.ai/v1/calls',
-        { phone_number: callerPhone, task: task, model: 'base', language: 'en', voice: 'maya', max_duration: 2 },
-        { headers: { 'Authorization': `Bearer ${process.env.BLAND_API_KEY}`, 'Content-Type': 'application/json' } }
-      );
-      console.log('✅ Missed call callback queued:', response.data);
-      await saveToSheet({ phone: callerPhone, message: 'Missed call - callback triggered' });
-    } catch (error) {
-      console.error('❌ Error:', error.message);
-    }
+  const task = `You are a receptionist for KindRemind. Call this person back and say: "Hi! This is KindRemind calling you back. We noticed you just tried to reach us. How can we help you today?"`;
+  
+  try {
+    const response = await axios.post(
+      'https://api.bland.ai/v1/calls',
+      { phone_number: callerPhone, task: task, model: 'base', language: 'en', voice: 'maya', max_duration: 2 },
+      { headers: { 'Authorization': `Bearer ${process.env.BLAND_API_KEY}`, 'Content-Type': 'application/json' } }
+    );
+    console.log('✅ Missed call callback queued:', response.data);
+    await saveToSheet({ phone: callerPhone, message: 'Missed call - callback triggered' });
+  } catch (error) {
+    console.error('❌ Error:', error.message);
   }
 
   res.set('Content-Type', 'text/xml');
-  res.send('<Response></Response>');
+  res.send(`<Response><Reject/></Response>`);
 });
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
