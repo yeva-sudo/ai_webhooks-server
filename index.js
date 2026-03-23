@@ -126,7 +126,7 @@ app.post('/missed-call', async (req, res) => {
   try {
     const response = await axios.post(
       'https://api.bland.ai/v1/calls',
-      { phone_number: callerPhone, task: task, model: 'base', language: 'en', voice: 'maya', max_duration: 2 },
+     { phone_number: callerPhone, task: task, model: 'base', language: 'en', voice: 'maya', max_duration: 5, webhook: 'https://ai-webhooks-server.onrender.com/call-complete' },
       { headers: { 'Authorization': `Bearer ${process.env.BLAND_API_KEY}`, 'Content-Type': 'application/json' } }
     );
     console.log('✅ Missed call callback queued:', response.data);
@@ -137,6 +137,21 @@ app.post('/missed-call', async (req, res) => {
 
   res.set('Content-Type', 'text/xml');
   res.send(`<Response><Reject/></Response>`);
+});
+
+app.post('/call-complete', async (req, res) => {
+  console.log('CALL COMPLETE DATA:', req.body);
+  const transcript = req.body.transcripts || [];
+  const phone = req.body.to || '';
+  
+  await saveToSheet({
+    phone: phone,
+    name: 'From Call',
+    message: transcript.map(t => `${t.user}: ${t.text}`).join(' | '),
+    service: 'Appointment Booking Call'
+  });
+
+  res.sendStatus(200);
 });
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
